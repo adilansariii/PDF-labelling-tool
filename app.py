@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__)
 
-# Create the text stamp
+# Create stamp once per PDF
 def create_stamp(text, width, height):
     packet = io.BytesIO()
 
@@ -16,21 +16,22 @@ def create_stamp(text, width, height):
     can.save()
 
     packet.seek(0)
-    return PdfReader(packet)
+    return PdfReader(packet).pages[0]
 
 
-# Process each uploaded PDF
 def process_pdf(file, name):
+
     reader = PdfReader(file)
     writer = PdfWriter()
 
+    # Create stamp once
+    first_page = reader.pages[0]
+    width = float(first_page.mediabox.width)
+    height = float(first_page.mediabox.height)
+
+    stamp_page = create_stamp(name, width, height)
+
     for page in reader.pages:
-        width = float(page.mediabox.width)
-        height = float(page.mediabox.height)
-
-        stamp_pdf = create_stamp(name, width, height)
-        stamp_page = stamp_pdf.pages[0]
-
         page.merge_page(stamp_page)
         writer.add_page(page)
 
