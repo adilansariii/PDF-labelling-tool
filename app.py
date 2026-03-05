@@ -1,59 +1,61 @@
 from flask import Flask, render_template, request, send_file
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
-import io
-import os
+from reportlab.lib.colors import red
+import io, os
 
 app = Flask(__name__)
 
-# Create stamp once per PDF
 def create_stamp(text, width, height):
     packet = io.BytesIO()
-
     can = canvas.Canvas(packet, pagesize=(width, height))
-    can.setFont("Helvetica", 10)
-    can.drawString(10, height - 20, text)
+
+    font_size = 20  # doubled size
+    x = 10
+    y = height - 30
+
+    can.setFont("Helvetica-Bold", font_size)
+    can.setFillColor(red)
+
+    # Draw the text
+    can.drawString(x + 5, y, text)
+
+    # Draw border box
+    text_width = can.stringWidth(text, "Helvetica-Bold", font_size)
+    can.setStrokeColor(red)
+    can.setLineWidth(2)
+    can.rect(x, y - 5, text_width + 10, font_size + 10)
+
     can.save()
-
     packet.seek(0)
-    return PdfReader(packet).pages[0]
 
+    return PdfReader(packet)
 
 def process_pdf(file, name):
-
     reader = PdfReader(file)
     writer = PdfWriter()
 
-    # Create stamp once
-    first_page = reader.pages[0]
-    width = float(first_page.mediabox.width)
-    height = float(first_page.mediabox.height)
-
-    stamp_page = create_stamp(name, width, height)
-
     for page in reader.pages:
+        width = float(page.mediabox.width)
+        height = float(page.mediabox.height)
+
+        stamp_pdf = create_stamp(name, width, height)
+        stamp_page = stamp_pdf.pages[0]
+
         page.merge_page(stamp_page)
         writer.add_page(page)
 
     return writer
 
-
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET","POST"])
 def index():
-
     if request.method == "POST":
 
         files = request.files.getlist("pdfs")
-
-        if not files:
-            return "No files uploaded"
-
         final_writer = PdfWriter()
 
         for file in files:
-
             name = os.path.splitext(file.filename)[0]
-
             processed = process_pdf(file, name)
 
             for page in processed.pages:
@@ -71,6 +73,5 @@ def index():
 
     return render_template("index.html")
 
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run()
