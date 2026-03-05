@@ -19,22 +19,26 @@ def create_stamp(text, width, height):
     box_width = text_width + padding * 2
     box_height = font_size + padding * 2
 
-    # Top-right position
-    x = width - box_width - 15
+    # Top-left alignment
+    x = 15
     y = height - box_height - 15
 
-    # Yellow background
+    # Apply 40% opacity
+    can.setFillAlpha(0.4)
+
+    # Background
     can.setFillColor(yellow)
     can.roundRect(x, y, box_width, box_height, 6, fill=1, stroke=0)
 
-    # Red rounded border
+    # Text (also 40% opacity)
+    can.setFillColor(red)
+    can.drawString(x + padding, y + padding, text)
+
+    # Border (reset to full opacity)
+    can.setFillAlpha(1)
     can.setStrokeColor(red)
     can.setLineWidth(2)
     can.roundRect(x, y, box_width, box_height, 6, fill=0, stroke=1)
-
-    # Red text
-    can.setFillColor(red)
-    can.drawString(x + padding, y + padding, text)
 
     can.save()
     packet.seek(0)
