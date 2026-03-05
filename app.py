@@ -1,19 +1,25 @@
 from flask import Flask, render_template, request, send_file
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
-import io, os
+import io
+import os
 
 app = Flask(__name__)
 
+# Create the text stamp
 def create_stamp(text, width, height):
     packet = io.BytesIO()
+
     can = canvas.Canvas(packet, pagesize=(width, height))
     can.setFont("Helvetica", 10)
     can.drawString(10, height - 20, text)
     can.save()
+
     packet.seek(0)
     return PdfReader(packet)
 
+
+# Process each uploaded PDF
 def process_pdf(file, name):
     reader = PdfReader(file)
     writer = PdfWriter()
@@ -30,15 +36,23 @@ def process_pdf(file, name):
 
     return writer
 
-@app.route("/", methods=["GET","POST"])
+
+@app.route("/", methods=["GET", "POST"])
 def index():
+
     if request.method == "POST":
 
         files = request.files.getlist("pdfs")
+
+        if not files:
+            return "No files uploaded"
+
         final_writer = PdfWriter()
 
         for file in files:
+
             name = os.path.splitext(file.filename)[0]
+
             processed = process_pdf(file, name)
 
             for page in processed.pages:
@@ -56,5 +70,6 @@ def index():
 
     return render_template("index.html")
 
+
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=10000)
