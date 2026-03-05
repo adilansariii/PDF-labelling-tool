@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Freespace PDF Processor</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="topbar"></div>
+
+<div class="container">
+
+<h1 class="logo">Freespace<span>.</span></h1>
+<h2 class="subtitle">PDF Tool</h2>
+
+<div class="card">
+
+<div id="drop-area">
+
+<p class="upload-text">Drag & Drop PDFs Here</p>
+<p class="small">or click to select files</p>
+
+<input type="file" id="fileInput" name="pdfs" multiple hidden>
+
+<button class="select-btn" onclick="document.getElementById('fileInput').click()">
+Select Files
+</button>
+
+</div>
+
+<ul id="fileList"></ul>
+
+<form id="uploadForm" action="/" method="POST" enctype="multipart/form-data">
+
+<input type="file" id="hiddenFiles" name="pdfs" multiple hidden>
+
+<button type="submit" class="merge-btn">
+Merge & Generate PDF
+</button>
+
+</form>
+
+<div id="loading" class="loading hidden">
+Processing PDFs...
+</div>
+
+<div id="alertBox" class="alert hidden"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let selectedFiles = []
+
+const dropArea = document.getElementById("drop-area")
+const fileInput = document.getElementById("fileInput")
+const fileList = document.getElementById("fileList")
+const hiddenFiles = document.getElementById("hiddenFiles")
+
+dropArea.addEventListener("dragover", e => {
+e.preventDefault()
+dropArea.classList.add("highlight")
+})
+
+dropArea.addEventListener("dragleave", () => {
+dropArea.classList.remove("highlight")
+})
+
+dropArea.addEventListener("drop", e => {
+
+e.preventDefault()
+dropArea.classList.remove("highlight")
+
+handleFiles(e.dataTransfer.files)
+
+})
+
+fileInput.addEventListener("change", e => {
+
+handleFiles(e.target.files)
+
+})
+
+function handleFiles(files){
+
+for(let file of files){
+
+selectedFiles.push(file)
+
+}
+
+renderList()
+
+}
+
+function renderList(){
+
+fileList.innerHTML=""
+
+selectedFiles.forEach((file,index)=>{
+
+let li=document.createElement("li")
+
+li.innerHTML = file.name + 
+' <button onclick="removeFile('+index+')">Remove</button>'
+
+fileList.appendChild(li)
+
+})
+
+}
+
+function removeFile(index){
+
+selectedFiles.splice(index,1)
+renderList()
+
+}
+
+document.getElementById("uploadForm").addEventListener("submit",function(e){
+
+if(selectedFiles.length==0){
+
+e.preventDefault()
+alert("Please upload at least one PDF")
+
+return
+
+}
+
+const dt = new DataTransfer()
+
+selectedFiles.forEach(file=>dt.items.add(file))
+
+hiddenFiles.files = dt.files
+
+document.getElementById("loading").classList.remove("hidden")
+
+})
+
+</script>
+
+</body>
+</html>
