@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
-<title>Freespace PDF Processor</title>
+    <title>Freespace PDF Processor</title>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
@@ -14,43 +16,159 @@
 
 <div class="container">
 
-<h1 class="logo">Freespace<span>.</span></h1>
-<h2 class="subtitle">PDF Tool</h2>
+    <h1 class="logo">
+        Freespace<span>.</span>
+    </h1>
 
-<div class="card">
+    <h2 class="subtitle">
+        PDF Tool
+    </h2>
 
-<div id="drop-area">
+    <div class="card">
 
-<p class="upload-text">Drag & Drop PDFs Here</p>
-<p class="small">or click to select files</p>
+        <!-- DROP AREA -->
+        <div id="drop-area">
 
-<input type="file" id="fileInput" name="pdfs" multiple hidden>
+            <p class="upload-text">
+                Drag & Drop PDFs Here
+            </p>
 
-<button class="select-btn" onclick="document.getElementById('fileInput').click()">
-Select Files
-</button>
+            <p class="small">
+                or click to select files
+            </p>
 
-</div>
+            <input
+                type="file"
+                id="fileInput"
+                name="pdfs"
+                multiple
+                accept=".pdf"
+                hidden
+            >
 
-<ul id="fileList"></ul>
+            <button
+                class="select-btn"
+                type="button"
+                onclick="document.getElementById('fileInput').click()"
+            >
+                Select Files
+            </button>
 
-<form id="uploadForm" action="/" method="POST" enctype="multipart/form-data">
+        </div>
 
-<input type="file" id="hiddenFiles" name="pdfs" multiple hidden>
+        <!-- FILE LIST -->
+        <ul id="fileList"></ul>
 
-<button type="submit" class="merge-btn">
-Merge & Generate PDF
-</button>
+        <!-- FORM -->
+        <form
+            id="uploadForm"
+            action="/"
+            method="POST"
+            enctype="multipart/form-data"
+        >
 
-</form>
+            <!-- HIDDEN FILE INPUT -->
+            <input
+                type="file"
+                id="hiddenFiles"
+                name="pdfs"
+                multiple
+                hidden
+            >
 
-<div id="loading" class="loading hidden">
-Processing PDFs...
-</div>
+            <!-- POSITION -->
+            <div class="option-group">
 
-<div id="alertBox" class="alert hidden"></div>
+                <label>
+                    Label Position
+                </label>
 
-</div>
+                <select name="position">
+
+                    <option value="top-left">
+                        Top Left
+                    </option>
+
+                    <option value="top-right">
+                        Top Right
+                    </option>
+
+                    <option value="bottom-left">
+                        Bottom Left
+                    </option>
+
+                    <option value="bottom-right">
+                        Bottom Right
+                    </option>
+
+                    <option value="center">
+                        Center
+                    </option>
+
+                </select>
+
+            </div>
+
+            <!-- FONT SIZE -->
+            <div class="option-group">
+
+                <label>
+                    Font Size
+                </label>
+
+                <input
+                    type="number"
+                    name="font_size"
+                    value="20"
+                    min="8"
+                    max="100"
+                >
+
+            </div>
+
+            <!-- OPACITY -->
+            <div class="option-group">
+
+                <label>
+                    Opacity
+                </label>
+
+                <input
+                    type="number"
+                    name="opacity"
+                    value="0.4"
+                    min="0.1"
+                    max="1"
+                    step="0.1"
+                >
+
+            </div>
+
+            <!-- SUBMIT -->
+            <button
+                type="submit"
+                class="merge-btn"
+            >
+                Merge & Generate PDF
+            </button>
+
+        </form>
+
+        <!-- LOADING -->
+        <div
+            id="loading"
+            class="loading hidden"
+        >
+            Processing PDFs...
+        </div>
+
+        <!-- ALERT -->
+        <div
+            id="alertBox"
+            class="alert hidden"
+        ></div>
+
+    </div>
 
 </div>
 
@@ -63,84 +181,108 @@ const fileInput = document.getElementById("fileInput")
 const fileList = document.getElementById("fileList")
 const hiddenFiles = document.getElementById("hiddenFiles")
 
+// DRAG OVER
 dropArea.addEventListener("dragover", e => {
-e.preventDefault()
-dropArea.classList.add("highlight")
+
+    e.preventDefault()
+
+    dropArea.classList.add("highlight")
+
 })
 
+// DRAG LEAVE
 dropArea.addEventListener("dragleave", () => {
-dropArea.classList.remove("highlight")
+
+    dropArea.classList.remove("highlight")
+
 })
 
+// DROP
 dropArea.addEventListener("drop", e => {
 
-e.preventDefault()
-dropArea.classList.remove("highlight")
+    e.preventDefault()
 
-handleFiles(e.dataTransfer.files)
+    dropArea.classList.remove("highlight")
+
+    handleFiles(e.dataTransfer.files)
 
 })
 
+// FILE SELECT
 fileInput.addEventListener("change", e => {
 
-handleFiles(e.target.files)
+    handleFiles(e.target.files)
 
 })
 
+// HANDLE FILES
 function handleFiles(files){
 
-for(let file of files){
+    for(let file of files){
 
-selectedFiles.push(file)
+        if(file.type === "application/pdf"){
+
+            selectedFiles.push(file)
+
+        }
+
+    }
+
+    renderList()
 
 }
 
-renderList()
-
-}
-
+// RENDER LIST
 function renderList(){
 
-fileList.innerHTML=""
+    fileList.innerHTML = ""
 
-selectedFiles.forEach((file,index)=>{
+    selectedFiles.forEach((file,index)=>{
 
-let li=document.createElement("li")
+        let li = document.createElement("li")
 
-li.innerHTML = file.name + 
-' <button onclick="removeFile('+index+')">Remove</button>'
+        li.innerHTML =
+            file.name +
+            ' <button type="button" onclick="removeFile('+index+')">Remove</button>'
 
-fileList.appendChild(li)
+        fileList.appendChild(li)
 
-})
+    })
 
 }
 
+// REMOVE FILE
 function removeFile(index){
 
-selectedFiles.splice(index,1)
-renderList()
+    selectedFiles.splice(index,1)
+
+    renderList()
 
 }
 
-document.getElementById("uploadForm").addEventListener("submit",function(e){
+// FORM SUBMIT
+document.getElementById("uploadForm")
+.addEventListener("submit", function(e){
 
-if(selectedFiles.length==0){
+    if(selectedFiles.length == 0){
 
-e.preventDefault()
-alert("Please upload at least one PDF")
+        e.preventDefault()
 
-return
+        alert("Please upload at least one PDF")
 
-}
+        return
 
-const dt = new DataTransfer()
+    }
 
-selectedFiles.forEach(file=>dt.items.add(file))
+    const dt = new DataTransfer()
 
-hiddenFiles.files = dt.files
+    selectedFiles.forEach(file => dt.items.add(file))
 
-document.getElementById("loading").classList.remove("hidden")
+    hiddenFiles.files = dt.files
+
+    document
+    .getElementById("loading")
+    .classList.remove("hidden")
 
 })
 
