@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, send_file
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
-from reportlab.lib.colors import red, yellow
 
 import io
 import os
@@ -72,15 +71,22 @@ def create_stamp(
         x = margin
         y = height - box_height - margin
 
-    # SAVE STATE
-    can.saveState()
+    # =====================================
+    # SIMULATED OPACITY USING LIGHTER COLORS
+    # =====================================
 
-    # APPLY OPACITY
-    can.setFillAlpha(opacity)
-    can.setStrokeAlpha(opacity)
+    # Background yellow becomes lighter
+    bg_blue = 0.4 + (0.6 * (1 - opacity))
+
+    # Text becomes lighter red
+    text_green_blue = opacity * 0.2
 
     # BACKGROUND
-    can.setFillColor(yellow)
+    can.setFillColorRGB(
+        1,
+        1,
+        bg_blue
+    )
 
     can.roundRect(
         x,
@@ -93,7 +99,11 @@ def create_stamp(
     )
 
     # TEXT
-    can.setFillColor(red)
+    can.setFillColorRGB(
+        1,
+        text_green_blue,
+        text_green_blue
+    )
 
     can.drawString(
         x + padding,
@@ -101,11 +111,12 @@ def create_stamp(
         text
     )
 
-    # RESTORE STATE
-    can.restoreState()
-
-    # BORDER (FULL OPACITY)
-    can.setStrokeColor(red)
+    # BORDER
+    can.setStrokeColorRGB(
+        1,
+        0,
+        0
+    )
 
     can.setLineWidth(2)
 
