@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, send_file
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import red, yellow
+
 import io
 import os
 
@@ -21,9 +22,15 @@ def create_stamp(
 
     packet = io.BytesIO()
 
-    can = canvas.Canvas(packet, pagesize=(width, height))
+    can = canvas.Canvas(
+        packet,
+        pagesize=(width, height)
+    )
 
-    can.setFont("Helvetica-Bold", font_size)
+    can.setFont(
+        "Helvetica-Bold",
+        font_size
+    )
 
     text_width = can.stringWidth(
         text,
@@ -65,8 +72,12 @@ def create_stamp(
         x = margin
         y = height - box_height - margin
 
-    # TRANSPARENCY
+    # SAVE STATE
+    can.saveState()
+
+    # APPLY OPACITY
     can.setFillAlpha(opacity)
+    can.setStrokeAlpha(opacity)
 
     # BACKGROUND
     can.setFillColor(yellow)
@@ -90,9 +101,10 @@ def create_stamp(
         text
     )
 
-    # BORDER
-    can.setFillAlpha(1)
+    # RESTORE STATE
+    can.restoreState()
 
+    # BORDER (FULL OPACITY)
     can.setStrokeColor(red)
 
     can.setLineWidth(2)
