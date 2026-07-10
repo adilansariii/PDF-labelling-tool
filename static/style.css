@@ -1,165 +1,174 @@
-body{
-
-font-family:Arial;
-background:#f4f6f9;
-margin:0;
-
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.topbar{
-
-height:10px;
-background:#1f2a44;
-
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f6f8;
+    color: #1f2a44;
 }
 
-.container{
-
-width:600px;
-margin:70px auto;
-
+.container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
 }
 
-.logo{
-
-font-size:42px;
-color:#1f2a44;
-margin:0;
-
+.header {
+    text-align: center;
+    margin-bottom: 25px;
 }
 
-.logo span{
-
-color:#2ecc71;
-
+.header h1 {
+    color: #1f2a44;
+    margin-bottom: 8px;
 }
 
-.subtitle{
-
-margin-top:5px;
-margin-bottom:30px;
-color:#555;
-
+.header p {
+    color: #666;
 }
 
-.card{
-
-background:white;
-padding:30px;
-border-radius:8px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
 }
 
-#drop-area{
-
-border:2px dashed #1f2a44;
-padding:40px;
-text-align:center;
-border-radius:8px;
-cursor:pointer;
-background:#fafafa;
-
+.label-title {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
 }
 
-#drop-area.highlight{
-
-background:#eef3ff;
-
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 20px;
 }
 
-.upload-text{
-
-font-size:18px;
-margin-bottom:5px;
-
+.settings-grid label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
 }
 
-.small{
-
-color:#888;
-
+input[type=file],
+input[type=number],
+input[type=text],
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d7dce3;
+    border-radius: 8px;
 }
 
-.select-btn{
-
-margin-top:10px;
-padding:8px 20px;
-background:#1f2a44;
-color:white;
-border:none;
-border-radius:5px;
-cursor:pointer;
-
+input[type=text]:focus,
+input[type=number]:focus,
+select:focus {
+    outline: none;
+    border-color: #2ecc71;
 }
 
-.merge-btn{
-
-width:100%;
-margin-top:20px;
-padding:12px;
-font-size:16px;
-background:#1f2a44;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
-
+#opacityValue {
+    display: inline-block;
+    margin-top: 8px;
+    font-weight: bold;
 }
 
-.merge-btn:hover{
-
-background:#162033;
-
+.generate-btn {
+    width: 100%;
+    border: none;
+    background: #0b7d3b;
+    color: white;
+    padding: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.2s ease;
 }
 
-ul{
-
-margin-top:20px;
-padding-left:0;
-
+.generate-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
-li{
-
-list-style:none;
-padding:8px;
-border-bottom:1px solid #eee;
-display:flex;
-justify-content:space-between;
-
+#fileList {
+    list-style: none;
 }
 
-li button{
-
-background:#ff5252;
-border:none;
-color:white;
-padding:4px 10px;
-border-radius:4px;
-cursor:pointer;
-
+.file-item {
+    display: grid;
+    grid-template-columns: 40px 1fr 320px;
+    gap: 15px;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
 }
 
-.loading{
-
-margin-top:20px;
-color:#1f2a44;
-font-weight:bold;
-
+.drag-handle {
+    cursor: grab;
+    font-size: 20px;
+    text-align: center;
 }
 
-.alert{
-
-margin-top:15px;
-padding:10px;
-background:#e8f5e9;
-border-left:5px solid #2ecc71;
-
+.file-name {
+    font-weight: 600;
+    word-break: break-word;
 }
 
-.hidden{
+.sortable-ghost {
+    opacity: 0.5;
+}
 
-display:none;
+.sortable-chosen {
+    transform: scale(1.01);
+}
 
+.sortable-drag {
+    cursor: grabbing;
+}
+
+#previewTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#previewTable th {
+    background: #121730;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+#previewTable td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px;
+}
+
+#previewTable tr:hover {
+    background: #f8fafc;
+}
+
+@media (max-width: 768px) {
+
+    .file-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .drag-handle {
+        display: none;
+    }
+
+    .container {
+        padding: 12px;
+    }
 }
