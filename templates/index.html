@@ -1,290 +1,331 @@
 <!DOCTYPE html>
-<html>
 
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freespace PDF Labelling Tool</title>
 
-    <title>Freespace PDF Processor</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
 
 </head>
-
 <body>
-
-<div class="topbar"></div>
 
 <div class="container">
 
-    <h1 class="logo">
-        Freespace<span>.</span>
-    </h1>
 
-    <h2 class="subtitle">
-        PDF Tool
-    </h2>
+<div class="header">
+    <h1>Freespace PDF Labelling Tool</h1>
+    <p>Upload, reorder and label PDFs before merging.</p>
+</div>
+
+<form id="pdfForm" method="POST" enctype="multipart/form-data">
+
+    <div class="card">
+        <label class="label-title">Upload PDFs</label>
+
+        <input
+            type="file"
+            id="pdfInput"
+            name="pdfs"
+            multiple
+            accept=".pdf"
+            required
+        >
+    </div>
 
     <div class="card">
 
-        <!-- DROP AREA -->
-        <div id="drop-area">
+        <div class="settings-grid">
 
-            <p class="upload-text">
-                Drag & Drop PDFs Here
-            </p>
+            <div>
+                <label>Position</label>
 
-            <p class="small">
-                or click to select files
-            </p>
-
-            <input
-                type="file"
-                id="fileInput"
-                name="pdfs"
-                multiple
-                accept=".pdf"
-                hidden
-            >
-
-            <button
-                class="select-btn"
-                type="button"
-                onclick="document.getElementById('fileInput').click()"
-            >
-                Select Files
-            </button>
-
-        </div>
-
-        <!-- FILE LIST -->
-        <ul id="fileList"></ul>
-
-        <!-- FORM -->
-        <form
-            id="uploadForm"
-            action="/"
-            method="POST"
-            enctype="multipart/form-data"
-        >
-
-            <!-- HIDDEN FILE INPUT -->
-            <input
-                type="file"
-                id="hiddenFiles"
-                name="pdfs"
-                multiple
-                hidden
-            >
-
-            <!-- POSITION -->
-            <div class="option-group">
-
-                <label>
-                    Label Position
-                </label>
-
-                <select name="position">
-
-                    <option value="top-left">
-                        Top Left
-                    </option>
-
-                    <option value="top-right">
-                        Top Right
-                    </option>
-
-                    <option value="bottom-left">
-                        Bottom Left
-                    </option>
-
-                    <option value="bottom-right">
-                        Bottom Right
-                    </option>
-
-                    <option value="center">
-                        Center
-                    </option>
-
+                <select id="position" name="position">
+                    <option value="top-left">Top Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="center">Center</option>
                 </select>
-
             </div>
 
-            <!-- FONT SIZE -->
-            <div class="option-group">
-
-                <label>
-                    Font Size
-                </label>
+            <div>
+                <label>Font Size</label>
 
                 <input
                     type="number"
+                    id="font_size"
                     name="font_size"
-                    value="20"
                     min="8"
-                    max="100"
+                    max="60"
+                    value="20"
                 >
-
             </div>
 
-            <!-- OPACITY -->
-            <div class="option-group">
-
-                <label>
-                    Opacity
-                </label>
+            <div>
+                <label>Opacity</label>
 
                 <input
-                    type="number"
+                    type="range"
+                    id="opacity"
                     name="opacity"
-                    value="0.4"
                     min="0.1"
                     max="1"
                     step="0.1"
+                    value="0.4"
                 >
 
+                <span id="opacityValue">0.4</span>
             </div>
 
-            <!-- SUBMIT -->
-            <button
-                type="submit"
-                class="merge-btn"
-            >
-                Merge & Generate PDF
-            </button>
-
-        </form>
-
-        <!-- LOADING -->
-        <div
-            id="loading"
-            class="loading hidden"
-        >
-            Processing PDFs...
         </div>
-
-        <!-- ALERT -->
-        <div
-            id="alertBox"
-            class="alert hidden"
-        ></div>
 
     </div>
 
-</div>
+    <div class="card">
+
+        <h2>PDF Order</h2>
+
+        <ul id="fileList"></ul>
+
+    </div>
+
+    <div class="card">
+
+        <h2>Label Preview</h2>
+
+        <table id="previewTable">
+
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>Label</th>
+                </tr>
+            </thead>
+
+            <tbody></tbody>
+
+        </table>
+
+    </div>
+
+    <input
+        type="hidden"
+        id="file_order"
+        name="file_order"
+    >
+
+    <button type="submit" class="generate-btn">
+        Generate Labelled PDF
+    </button>
+
+</form>
+```
+
+
+
 
 <script>
 
-let selectedFiles = []
+let uploadedFiles = [];
 
-const dropArea = document.getElementById("drop-area")
-const fileInput = document.getElementById("fileInput")
-const fileList = document.getElementById("fileList")
-const hiddenFiles = document.getElementById("hiddenFiles")
+const pdfInput = document.getElementById("pdfInput");
+const fileList = document.getElementById("fileList");
+const previewBody = document.querySelector("#previewTable tbody");
 
-// DRAG OVER
-dropArea.addEventListener("dragover", e => {
+const opacitySlider = document.getElementById("opacity");
+const opacityValue = document.getElementById("opacityValue");
 
-    e.preventDefault()
+opacitySlider.addEventListener("input", () => {
+    opacityValue.textContent = opacitySlider.value;
+});
 
-    dropArea.classList.add("highlight")
+function cleanLabel(filename) {
 
-})
+    let label = filename.replace(".pdf", "");
 
-// DRAG LEAVE
-dropArea.addEventListener("dragleave", () => {
+    label = label.replace(/[_-]/g, " ");
 
-    dropArea.classList.remove("highlight")
+    label = label.replace(/final|copy|v\d+/gi, "");
 
-})
+    label = label.replace(/\s+/g, " ").trim();
 
-// DROP
-dropArea.addEventListener("drop", e => {
+    return label;
+}
 
-    e.preventDefault()
+function rebuildPreview() {
 
-    dropArea.classList.remove("highlight")
+    previewBody.innerHTML = "";
 
-    handleFiles(e.dataTransfer.files)
+    document.querySelectorAll(".file-item")
+        .forEach(item => {
 
-})
+            const filename = item.dataset.filename;
 
-// FILE SELECT
-fileInput.addEventListener("change", e => {
+            const labelInput =
+                item.querySelector(".label-input");
 
-    handleFiles(e.target.files)
+            const row =
+                document.createElement("tr");
 
-})
+            row.innerHTML = `
+                <td>${filename}</td>
+                <td>${labelInput.value}</td>
+            `;
 
-// HANDLE FILES
-function handleFiles(files){
+            previewBody.appendChild(row);
+        });
+}
 
-    for(let file of files){
+function updateOrderField() {
 
-        if(file.type === "application/pdf"){
+    const orderData = [];
 
-            selectedFiles.push(file)
+    document.querySelectorAll(".file-item")
+        .forEach(item => {
 
-        }
+            orderData.push({
+                index: parseInt(item.dataset.index),
+                label: item.querySelector(".label-input").value
+            });
 
+        });
+
+    document.getElementById("file_order").value =
+        JSON.stringify(orderData);
+}
+
+
+pdfInput.addEventListener("change", () => {
+
+    uploadedFiles = Array.from(pdfInput.files);
+
+    fileList.innerHTML = "";
+
+    previewBody.innerHTML = "";
+
+    uploadedFiles.forEach((file, index) => {
+
+        const li = document.createElement("li");
+
+        li.className = "file-item";
+
+        li.dataset.filename = file.name;
+
+        li.dataset.index = index;
+
+        li.innerHTML = `
+            <span class="drag-handle">☰</span>
+
+            <span class="file-name">
+                ${file.name}
+            </span>
+
+            <input
+                class="label-input"
+                type="text"
+                name="labels"
+                value="${cleanLabel(file.name)}"
+            >
+        `;
+
+        fileList.appendChild(li);
+
+        li.querySelector(".label-input")
+            .addEventListener(
+                "input",
+                rebuildPreview
+            );
+    });
+
+    rebuildPreview();
+
+    updateOrderField();
+});
+
+new Sortable(fileList, {
+
+    animation: 150,
+
+    ghostClass: "sortable-ghost",
+
+    chosenClass: "sortable-chosen",
+
+    dragClass: "sortable-drag",
+
+    onEnd: () => {
+
+        rebuildPreview();
+
+        updateOrderField();
     }
+});
 
-    renderList()
+document.getElementById("pdfForm")
+.addEventListener("submit", () => {
 
+    updateOrderField();
+});
+
+const savedPosition =
+    localStorage.getItem("position");
+
+const savedFontSize =
+    localStorage.getItem("font_size");
+
+const savedOpacity =
+    localStorage.getItem("opacity");
+
+if(savedPosition){
+    document.getElementById("position").value =
+        savedPosition;
 }
 
-// RENDER LIST
-function renderList(){
-
-    fileList.innerHTML = ""
-
-    selectedFiles.forEach((file,index)=>{
-
-        let li = document.createElement("li")
-
-        li.innerHTML =
-            file.name +
-            ' <button type="button" onclick="removeFile('+index+')">Remove</button>'
-
-        fileList.appendChild(li)
-
-    })
-
+if(savedFontSize){
+    document.getElementById("font_size").value =
+        savedFontSize;
 }
 
-// REMOVE FILE
-function removeFile(index){
+if(savedOpacity){
 
-    selectedFiles.splice(index,1)
+    document.getElementById("opacity").value =
+        savedOpacity;
 
-    renderList()
-
+    opacityValue.textContent =
+        savedOpacity;
 }
 
-// FORM SUBMIT
-document.getElementById("uploadForm")
-.addEventListener("submit", function(e){
+document.getElementById("position")
+.addEventListener("change", e => {
 
-    if(selectedFiles.length == 0){
+    localStorage.setItem(
+        "position",
+        e.target.value
+    );
+});
 
-        e.preventDefault()
+document.getElementById("font_size")
+.addEventListener("change", e => {
 
-        alert("Please upload at least one PDF")
+    localStorage.setItem(
+        "font_size",
+        e.target.value
+    );
+});
 
-        return
+document.getElementById("opacity")
+.addEventListener("change", e => {
 
-    }
-
-    const dt = new DataTransfer()
-
-    selectedFiles.forEach(file => dt.items.add(file))
-
-    hiddenFiles.files = dt.files
-
-    document
-    .getElementById("loading")
-    .classList.remove("hidden")
-
-})
+    localStorage.setItem(
+        "opacity",
+        e.target.value
+    );
+});
 
 </script>
 
